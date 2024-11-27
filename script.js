@@ -1,23 +1,61 @@
 const clientId = "2a1d7d4e43384a1f813a74df83845b5c"; // Reemplaza con tu Client ID
 const redirectUri = "https://army-borahae.github.io/for-army.com/"; // URI configurada en Spotify Dashboard
 
+let accessToken = null;
+let selectedTracks = []; // Variable para almacenar las canciones seleccionadas
 
-let accessToken = "BQBUtg99FV6tFO78Umkr2FblyTVc_x52JcnzqJNwj-zG_Ke7NPeDLM7iazkTZvV6G7ALG2r9LvMmUw14nzodsgsrcTHIG1ntLzOegLI1-rwX8Ns8rTr8KYDfFB-2h-v-B2-qv0KQNO_TvlueAxZYavn6ayIFdeerzv6f-BbD_zBzelDZyAZpGPiGWaMrfBYWweGVa0ibPLIYz9fccikPMAKyw9V4s90SoOs6QvaHg_oloyRs55K1Tg8sRezOic8irvafoipKkvtC9DRp_2NIsrK6FJVxLiN9"; // Reemplaza con tu token de acceso
-const userId = "31fjrd3j533r3ett4dcmcygy7k54"; // Reemplaza con tu User ID
+// Solicitar permisos para crear playlists y modificarlas
+const scopes = 'user-read-private playlist-modify-public playlist-modify-private';
+const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+
+// Función para redirigir al usuario a Spotify para que otorgue permisos
+function authorizeSpotify() {
+    window.location.href = authUrl;
+}
+
+// Obtener el token de acceso de la URL después de la redirección
+function getAccessTokenFromUrl() {
+    const hash = window.location.hash.substring(1);  // Obtener la parte del hash de la URL
+    const params = new URLSearchParams(hash);
+    const token = params.get('access_token');
+    console.log("Token de acceso extraído:", token); // Depurar el token
+    return token;
+}
+
+if (window.location.hash) {
+    accessToken = getAccessTokenFromUrl();
+    if (accessToken) {
+        console.log("Access Token:", accessToken);  // Verifica que el token esté presente
+    } else {
+        console.log("No se encontró el token de acceso.");
+    }
+}
+
+// Verificar si el token de acceso está presente
+function checkAccessToken() {
+    if (!accessToken) {
+        alert("Tu token ha expirado. Por favor, vuelve a autorizar la aplicación.");
+        authorizeSpotify();  // Redirige para autorizar
+    }
+}
 
 // Función para mostrar las notificaciones en pantalla
 function showNotification(message) {
     const notification = document.getElementById("notification");
     const notificationText = document.getElementById("notification-text");
 
-    notificationText.textContent = message; // Establecer el mensaje
-    notification.style.display = "block"; // Mostrar la notificación
+    // Establecer el mensaje
+    notificationText.textContent = message;
+
+    // Mostrar la notificación
+    notification.style.display = "block";
     notification.classList.add("show");
 
-    setTimeout(() => { // Ocultar después de 3 segundos
+    // Ocultar la notificación después de 3 segundos
+    setTimeout(() => {
         notification.classList.remove("show");
         notification.style.display = "none";
-    }, 3000);
+    }, 3000);  // Desaparece después de 3 segundos
 }
 
 // Buscar canciones
@@ -26,11 +64,11 @@ const searchBtn = document.getElementById("searchBtn");
 const results = document.getElementById("results");
 const playlist = document.getElementById("playlist");
 
-const selectedTracks = []; // Asegúrate de que sea un arreglo global
-
 searchBtn.addEventListener("click", async () => {
     const query = searchInput.value;
-    if (!query) return showNotification("Por favor, ingresa una búsqueda.");
+    if (!query) return alert("Por favor, ingresa una búsqueda.");
+
+    checkAccessToken(); // Verificar el token antes de buscar
 
     try {
         const response = await fetch(
@@ -43,15 +81,11 @@ searchBtn.addEventListener("click", async () => {
         );
 
         if (!response.ok) {
-            throw new Error("No se pudo obtener los resultados de búsqueda.");
+            const errorData = await response.json(); // Obtener detalles del error
+            throw new Error(`Error ${response.status}: ${errorData.error.message}`);
         }
 
         const data = await response.json();
-        if (!data.tracks || !data.tracks.items || data.tracks.items.length === 0) {
-            showNotification("No se encontraron resultados.");
-            return;
-        }
-
         results.innerHTML = "";
         data.tracks.items.forEach((track) => {
             const li = document.createElement("li");
@@ -74,28 +108,74 @@ searchBtn.addEventListener("click", async () => {
             results.appendChild(li);
         });
     } catch (error) {
-        console.error("Error en la búsqueda:", error);
-        showNotification("Hubo un error al realizar la búsqueda: " + error.message);
+        alert("Hubo un error al realizar la búsqueda: " + error.message);
     }
 });
 
 // Almacenar canciones seleccionadas
 function addToPlaylist(track) {
+    // Verificar si la canción ya ha sido agregada
     if (selectedTracks.find(t => t.id === track.id)) {
         showNotification("Esta canción ya está en la lista.");
         return;
     }
-    selectedTracks.push(track);
+
+    selectedTracks.push(track); // Agregar la canción a la lista
     showNotification(`Canción agregada: ${track.name}`);
 }
 
-// Guardar en Spotify
+// Agregar canciones alternadas a la playlist
+function addAlternatedToPlaylist() {
+    const playlistLength = selectedTracks.length;
+    if (playlistLength === 0) return alert("No hay canciones en la lista.");
+
+    // Crear un nuevo arreglo para las canciones repetidas
+    let playlistOrder = [];
+    for (let i = 0; i < 20; i++) { // Repetir 20 veces
+        for (let j = 0; j < playlistLength; j++) {
+            playlistOrder.push(selectedTracks[j]); // Agregar la canción en orden
+        }
+    }
+
+    // Mostrar las canciones en el área de playlist
+    playlist.innerHTML = "";
+    playlistOrder.forEach((track) => {
+        const li = document.createElement("li");
+
+        const img = document.createElement("img");
+        img.src = track.album.images[0].url; // Obtener la imagen del álbum
+        img.alt = track.name;
+        img.classList.add("track-image"); // Asegúrate de tener estilos para esta clase
+
+        const text = document.createElement("span");
+        text.textContent = `${track.name} - ${track.artists[0].name}`;
+
+        li.appendChild(img);
+        li.appendChild(text);
+        playlist.appendChild(li);
+    });
+}
+
+document.getElementById("addAlternatedBtn").addEventListener("click", addAlternatedToPlaylist);
+
+// Guardar playlist en Spotify
 document.getElementById("savePlaylistBtn").addEventListener("click", async () => {
+    checkAccessToken();
+
     const playlistName = prompt("¿Cómo quieres llamar a tu playlist?");
     if (!playlistName) return alert("Debes dar un nombre a la playlist.");
 
     try {
-        // Crear la playlist en tu cuenta de Spotify
+        const response = await fetch("https://api.spotify.com/v1/me", {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+
+        const userData = await response.json();
+        const userId = userData.id;
+
+        // Crear la playlist en Spotify
         const createPlaylistResponse = await fetch(
             `https://api.spotify.com/v1/users/${userId}/playlists`,
             {
@@ -116,8 +196,7 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
         const playlistId = createPlaylistData.id;
 
         // Agregar canciones a la playlist
-        const trackUris = selectedTracks.map(track => track.uri);
-
+        const trackUris = selectedTracks.map((track) => track.uri);
         await fetch(
             `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
             {
@@ -134,65 +213,10 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
 
         showNotification("Playlist guardada exitosamente.");
     } catch (error) {
-        console.error("Error al guardar la playlist:", error);
         showNotification("Hubo un error al guardar la playlist.");
     }
 });
 
-// Agregar canciones alternadas a la playlist
-document.getElementById("addAlternatedBtn").addEventListener("click", addAlternatedToPlaylist);
-
-function addAlternatedToPlaylist() {
-    const playlistLength = selectedTracks.length;
-    if (playlistLength === 0) return showNotification("No hay canciones en la lista.");
-
-    // Crear un nuevo arreglo para la lista de reproducción
-    let playlistOrder = [];
-
-    // Repetir las canciones en el orden original 20 veces
-    for (let i = 0; i < 20; i++) {
-        selectedTracks.forEach(track => {
-            playlistOrder.push(track); // Agregar la canción en orden
-        });
-    }
-
-    // Mostrar las canciones en el área de playlist
-    playlist.innerHTML = ""; // Limpiar la lista antes de mostrar
-    playlistOrder.forEach((track) => {
-        const li = document.createElement("li");
-
-        // Crear y agregar la imagen
-        const img = document.createElement("img");
-        img.src = track.album.images[0].url; // Asegúrate de que la imagen exista
-        img.alt = track.name;
-        img.classList.add("track-image");
-
-        // Crear y agregar el texto
-        const text = document.createElement("span");
-        text.textContent = `${track.name} - ${track.artists[0].name}`;
-
-        // Crear botón para quitar la canción
-        const removeButton = document.createElement("button");
-        removeButton.textContent = "Quitar";
-        removeButton.onclick = () => {
-            // Lógica para quitar la canción
-            const index = selectedTracks.findIndex(t => t.id === track.id);
-            if (index !== -1) {
-                selectedTracks.splice(index, 1); // Quitar de la lista de seleccionados
-                addAlternatedToPlaylist(); // Actualizar la lista de reproducción
-                showNotification(`Canción quitada: ${track.name}`);
-            }
-        };
-
-        // Agregar la imagen, el texto y el botón
-        li.appendChild(img);
-        li.appendChild(text);
-        li.appendChild(removeButton);
-        playlist.appendChild(li);
-    });
-}
-
-// Redirigir al usuario a tu página de playlists en Spotify
 document.getElementById("viewPlaylistsBtn").addEventListener("click", () => {
-    window.open(`https://open.spotify.com/user/${userId}/collection/playlists`, "_blank");
+    alert("Dirígete a tu Spotify para que puedas ver tu playlist y disfruta 💜💜.");
 });
