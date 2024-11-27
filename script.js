@@ -1,64 +1,9 @@
 const clientId = "2a1d7d4e43384a1f813a74df83845b5c"; // Reemplaza con tu Client ID
 const redirectUri = "https://army-borahae.github.io/for-army.com/"; // URI configurada en Spotify Dashboard
 
-let accessToken = null;
-let expiresIn = null;
-let expirationTime = null;
 
-// Scopes solicitados
-const scopes = 'user-read-private playlist-modify-public playlist-modify-private user-library-read playlist-read-private';
-const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
-
-// Función para redirigir a Spotify para autorización
-function authorizeSpotify() {
-    window.location.href = authUrl;
-}
-
-// Obtener token desde la URL
-function getAccessTokenFromUrl() {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const token = params.get('access_token');
-    expiresIn = params.get('expires_in'); // Tiempo de expiración del token
-
-    if (token) {
-        accessToken = token; // Guardar el token en una variable global
-        expirationTime = Date.now() + expiresIn * 1000; // Guardar el tiempo de expiración
-        window.history.pushState("", document.title, window.location.pathname); // Limpiar la URL
-        console.log("Nuevo token de acceso obtenido:", accessToken);
-    }
-}
-
-// Verificar si el token ha expirado
-function checkAccessToken() {
-    if (!accessToken || Date.now() >= expirationTime) {
-        authorizeSpotify(); // Redirige a autorización si el token no es válido
-    }
-}
-
-// Función genérica para manejar solicitudes con token
-async function fetchWithTokenRetry(url, options) {
-    checkAccessToken(); // Asegura que el token sea válido antes de realizar la solicitud
-
-    try {
-        const response = await fetch(url, options);
-        if (response.status === 401) { // Token expirado
-            console.log("Token expirado. Redirigiendo a autorización...");
-            authorizeSpotify(); // Redirige automáticamente
-        }
-        return response;
-    } catch (error) {
-        console.error("Error en la solicitud:", error);
-        throw error;
-    }
-}
-
-// Obtener el token al cargar la página
-if (window.location.hash) {
-    getAccessTokenFromUrl();
-} else {
-    authorizeSpotify(); // Redirige automáticamente si no hay token
-}
+let accessToken = "BQBUtg99FV6tFO78Umkr2FblyTVc_x52JcnzqJNwj-zG_Ke7NPeDLM7iazkTZvV6G7ALG2r9LvMmUw14nzodsgsrcTHIG1ntLzOegLI1-rwX8Ns8rTr8KYDfFB-2h-v-B2-qv0KQNO_TvlueAxZYavn6ayIFdeerzv6f-BbD_zBzelDZyAZpGPiGWaMrfBYWweGVa0ibPLIYz9fccikPMAKyw9V4s90SoOs6QvaHg_oloyRs55K1Tg8sRezOic8irvafoipKkvtC9DRp_2NIsrK6FJVxLiN9"; // Reemplaza con tu token de acceso
+const userId = "31fjrd3j533r3ett4dcmcygy7k54"; // Reemplaza con tu User ID
 
 // Función para mostrar las notificaciones en pantalla
 function showNotification(message) {
@@ -88,7 +33,7 @@ searchBtn.addEventListener("click", async () => {
     if (!query) return showNotification("Por favor, ingresa una búsqueda.");
 
     try {
-        const response = await fetchWithTokenRetry(
+        const response = await fetch(
             `https://api.spotify.com/v1/search?q=${query}&type=track&limit=10`,
             {
                 headers: {
@@ -146,22 +91,11 @@ function addToPlaylist(track) {
 
 // Guardar en Spotify
 document.getElementById("savePlaylistBtn").addEventListener("click", async () => {
-    checkAccessToken();
-
     const playlistName = prompt("¿Cómo quieres llamar a tu playlist?");
     if (!playlistName) return alert("Debes dar un nombre a la playlist.");
 
     try {
-        const response = await fetch("https://api.spotify.com/v1/me", {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
-
-        const userData = await response.json();
-        const userId = userData.id;
-
-        // Crear la playlist en Spotify
+        // Crear la playlist en tu cuenta de Spotify
         const createPlaylistResponse = await fetch(
             `https://api.spotify.com/v1/users/${userId}/playlists`,
             {
@@ -182,14 +116,7 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
         const playlistId = createPlaylistData.id;
 
         // Agregar canciones a la playlist
-        const trackUris = []; // Arreglo para almacenar las URIs de las canciones
-
-        // Repetir las canciones 20 veces y agregar sus URIs
-        for (let i = 0; i < 20; i++) {
-            selectedTracks.forEach(track => {
-                trackUris.push(track.uri); // Agregar la URI de la canción
-            });
-        }
+        const trackUris = selectedTracks.map(track => track.uri);
 
         await fetch(
             `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -207,6 +134,7 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
 
         showNotification("Playlist guardada exitosamente.");
     } catch (error) {
+        console.error("Error al guardar la playlist:", error);
         showNotification("Hubo un error al guardar la playlist.");
     }
 });
@@ -263,7 +191,8 @@ function addAlternatedToPlaylist() {
         playlist.appendChild(li);
     });
 }
-// Redirigir al usuario a su página de playlists en Spotify
+
+// Redirigir al usuario a tu página de playlists en Spotify
 document.getElementById("viewPlaylistsBtn").addEventListener("click", () => {
-    window.open("https://open.spotify.com/collection/playlists", "_blank");
+    window.open(`https://open.spotify.com/user/${userId}/collection/playlists`, "_blank");
 });
