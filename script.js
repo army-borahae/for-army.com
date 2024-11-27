@@ -129,7 +129,7 @@ function addToPlaylist(track) {
     showNotification(`Canción agregada: ${track.name}`);
 }
 
-// Agregar canciones alternadas a la playlist
+// Función para agregar canciones alternadas a la playlist
 function addAlternatedToPlaylist() {
     const playlistLength = selectedTracks.length;
     if (playlistLength === 0) return alert("No hay canciones en la lista.");
@@ -142,26 +142,44 @@ function addAlternatedToPlaylist() {
         }
     }
 
-    // Mostrar las canciones en el área de playlist
-    playlist.innerHTML = "";
+    // Limpiar el área de la playlist antes de volver a renderizar
+    playlist.innerHTML = "";  
     playlistOrder.forEach((track) => {
         const li = document.createElement("li");
 
         const img = document.createElement("img");
-        img.src = track.album.images[0].url; // Obtener la imagen del álbum
+        img.src = track.album.images[0].url;  // Obtener la imagen del álbum
         img.alt = track.name;
-        img.classList.add("track-image"); // Asegúrate de tener estilos para esta clase
+        img.classList.add("track-image");  // Asegúrate de tener estilos para esta clase
 
         const text = document.createElement("span");
         text.textContent = `${track.name} - ${track.artists[0].name}`;
 
+        // Crear botón para quitar la canción de la playlist alternada
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "Quitar";
+        removeButton.onclick = () => removeFromAlternatedPlaylist(track);
+
         li.appendChild(img);
         li.appendChild(text);
+        li.appendChild(removeButton);
         playlist.appendChild(li);
     });
 }
 
+// Función para quitar una canción de la playlist alternada
+function removeFromAlternatedPlaylist(track) {
+    // Eliminar la canción del arreglo alternado (donde están las canciones repetidas)
+    selectedTracks = selectedTracks.filter(t => t.id !== track.id);  // Eliminar la canción de la lista original
+
+    // Vuelve a renderizar la playlist alternada sin la canción eliminada
+    addAlternatedToPlaylist();
+    showNotification(`Canción eliminada: ${track.name}`);
+}
+
+// Manejador de evento para el botón "Agregar alternada"
 document.getElementById("addAlternatedBtn").addEventListener("click", addAlternatedToPlaylist);
+
 
 // Guardar playlist en Spotify
 document.getElementById("savePlaylistBtn").addEventListener("click", async () => {
