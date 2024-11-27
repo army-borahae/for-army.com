@@ -68,8 +68,13 @@ searchBtn.addEventListener("click", async () => {
     const query = searchInput.value;
     if (!query) return alert("Por favor, ingresa una búsqueda.");
 
-    checkAccessToken(); // Verificar el token antes de buscar
+    if (isTokenExpired()) {
+        await refreshToken();
+        return;
+    }
 
+    showLoading("Buscando canciones...");
+    
     try {
         const response = await fetch(
             `https://api.spotify.com/v1/search?q=${query}&type=track&limit=10`,
@@ -80,10 +85,8 @@ searchBtn.addEventListener("click", async () => {
             }
         );
 
-        console.log(response); // Agrega esta línea para depurar
-
         if (!response.ok) {
-            const errorData = await response.text(); // Cambia a text() para ver el error
+            const errorData = await response.text(); // Ver el error de la respuesta
             throw new Error(`Error ${response.status}: ${errorData}`);
         }
 
@@ -110,7 +113,10 @@ searchBtn.addEventListener("click", async () => {
             results.appendChild(li);
         });
     } catch (error) {
+        console.error("Error en la búsqueda:", error);
         alert("Hubo un error al realizar la búsqueda: " + error.message);
+    } finally {
+        hideLoading();  // Ocultar indicador de carga después de la búsqueda
     }
 });
 
@@ -159,8 +165,13 @@ document.getElementById("addAlternatedBtn").addEventListener("click", addAlterna
 
 // Guardar playlist en Spotify
 document.getElementById("savePlaylistBtn").addEventListener("click", async () => {
-    checkAccessToken();
+    if (isTokenExpired()) {
+        await refreshToken();
+        return;
+    }
 
+    showLoading("Guardando playlist...");
+    
     const playlistName = prompt("¿Cómo quieres llamar a tu playlist?");
     if (!playlistName) return alert("Debes dar un nombre a la playlist.");
 
@@ -212,10 +223,38 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
 
         showNotification("Playlist guardada exitosamente.");
     } catch (error) {
+        console.error("Error al guardar la playlist:", error);
         showNotification("Hubo un error al guardar la playlist.");
+    } finally {
+        hideLoading();  // Ocultar indicador de carga después de guardar
     }
 });
 
 document.getElementById("viewPlaylistsBtn").addEventListener("click", () => {
     alert("Dirígete a tu Spotify para que puedas ver tu playlist y disfruta 💜💜.");
 });
+// Mostrar indicador de carga
+function showLoading(message) {
+    const loadingElement = document.getElementById("loading");
+    loadingElement.textContent = message;
+    loadingElement.style.display = "block";
+}
+
+// Ocultar indicador de carga
+function hideLoading() {
+    const loadingElement = document.getElementById("loading");
+    loadingElement.style.display = "none";
+}
+
+// Verificar si el token de acceso ha expirado
+function isTokenExpired() {
+    // Lógica para verificar si el token ha expirado (si es necesario)
+    return !accessToken;  // Aquí estamos asumiendo que si no hay token, está expirado
+}
+
+// Función para refrescar el token (si se implementa un flujo de refresh)
+async function refreshToken() {
+    // Aquí puedes implementar la lógica para refrescar el token (si es necesario)
+    alert("Tu token ha expirado. Por favor, vuelve a autorizar la aplicación.");
+    authorizeSpotify();
+}
