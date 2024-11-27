@@ -5,7 +5,7 @@ let accessToken = null;
 let selectedTracks = []; // Variable para almacenar las canciones seleccionadas
 
 // Solicitar permisos para crear playlists y modificarlas
-const scopes = 'user-read-private playlist-modify-public playlist-modify-private playlist-read-private';
+const scopes = 'user-read-private playlist-modify-public playlist-modify-private playlist-read-private user-library-read';
 const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
 
 // Función para redirigir al usuario a Spotify para que otorgue permisos
