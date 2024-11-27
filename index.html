@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Playlist Creator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Spotify Playlist Creator</h1>
+    <h2>🚨ONLY ARMY 🚨</h2>
+    <input type="text" id="searchInput" placeholder="Buscar canciones...">
+    <button id="searchBtn">Buscar</button>
+    <ul id="results"></ul>
+    
+    <h2>Playlist</h2>
+    <ul id="playlist"></ul>
+    <!-- Botón para agregar canciones alternadas -->
+    <button id="addAlternatedBtn">Ver Playlist Combinada</button>
+
+    <!-- Botón para guardar la playlist -->
+    <button id="savePlaylistBtn">Guardar Playlist</button>  <!-- Nuevo botón -->
+    <button id="viewPlaylistsBtn">Ver playlists</button>
+
+  </div>
+  <div id="notification" class="notification" style="display: none;">
+    <span id="notification-text"></span>
+</div>
+
+
+
+  <script src="script.js"></script>
+</body>
+</html>
