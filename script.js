@@ -1,23 +1,11 @@
 const clientId = "2a1d7d4e43384a1f813a74df83845b5c"; // Reemplaza con tu Client ID
-const redirectUri = "https://army-borahae.github.io/for-army.com/";
-// URI configurada en Spotify Dashboard
+const redirectUri = "https://army-borahae.github.io/for-army.com/"; // URI configurada en Spotify Dashboard
 
 let accessToken = null;
 let selectedTracks = []; // Variable para almacenar las canciones seleccionadas
 
 // Solicitar permisos para crear playlists y modificarlas
-const scopes = [
-    'user-read-private',                  // Leer información del perfil
-    'playlist-modify-public',            // Crear/editar playlists públicas
-    'playlist-modify-private',           // Crear/editar playlists privadas
-    'playlist-read-private',             // Leer playlists privadas
-    'playlist-read-collaborative',       // Leer playlists colaborativas
-    'user-library-read',                 // Acceder a las canciones guardadas
-    'user-library-modify',               // Agregar/eliminar canciones guardadas
-    'user-follow-read',                  // Leer a quién sigue el usuario
-    'user-read-email'                    // Acceder al email del usuario
-].join(' '); // Unir los permisos con espacios
-
+const scopes = 'user-read-private playlist-modify-public playlist-modify-private playlist-read-private';
 const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
 
 // Función para redirigir al usuario a Spotify para que otorgue permisos
@@ -288,3 +276,12 @@ async function refreshToken() {
     alert("Tu token ha expirado. Por favor, vuelve a autorizar la aplicación.");
     authorizeSpotify();
 }
+fetch(`https://api.spotify.com/v1/me`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+.then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+})
+.then(data => console.log("Usuario autenticado:", data))
+.catch(err => console.error("Error al autenticar:", err));
