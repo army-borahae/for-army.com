@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #5b1b6b;
+    background-color: #531257;
     color: white;
     text-align: center;
     margin: 0;
@@ -25,7 +25,7 @@ input {
 }
 
 button {
-    background-color: #5b1b6b;
+    background-color: #531257;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -34,7 +34,7 @@ button {
 }
 
 button:hover {
-    background-color: #5b1b6b;
+    background-color: #531257;
 }
 
 ul {
@@ -108,7 +108,7 @@ ul li button {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #5b1b6b; /* Verde */
+    background-color: #531257; /* Verde */
     color: white;
     padding: 15px;
     border-radius: 5px;
@@ -121,5 +121,19 @@ ul li button {
 
 .notification.show {
     opacity: 1;
+}
+
+/* Estilos para el indicador de carga */
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    font-size: 18px;
+    z-index: 10000;
 }
 
