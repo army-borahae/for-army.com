@@ -9,15 +9,16 @@
 <body>
   <div class="container">
     <h1>Spotify Playlist Creator</h1>
-    <h2>🚨ONLY ARMY 🚨</h2>
+    <h2>🚨ONLY ARMY🚨</h2>
     <input type="text" id="searchInput" placeholder="Buscar canciones...">
     <button id="searchBtn">Buscar</button>
     <ul id="results"></ul>
     
     <h2>Playlist</h2>
     <ul id="playlist"></ul>
+
     <!-- Botón para agregar canciones alternadas -->
-    <button id="addAlternatedBtn">Ver Playlist Combinada</button>
+    <button id="addAlternatedBtn">Combinar Playlist</button>
 
     <!-- Botón para guardar la playlist -->
     <button id="savePlaylistBtn">Guardar Playlist</button>  <!-- Nuevo botón -->
@@ -27,8 +28,10 @@
   <div id="notification" class="notification" style="display: none;">
     <span id="notification-text"></span>
 </div>
-
-
+<!-- Contenedor para el indicador de carga -->
+<div id="loading" class="loading" style="display: none;">
+  <span>Cargando...</span>
+</div>
 
   <script src="script.js"></script>
 </body>
