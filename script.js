@@ -80,9 +80,11 @@ searchBtn.addEventListener("click", async () => {
             }
         );
 
+        console.log(response); // Agrega esta línea para depurar
+
         if (!response.ok) {
-            const errorData = await response.json(); // Obtener detalles del error
-            throw new Error(`Error ${response.status}: ${errorData.error.message}`);
+            const errorData = await response.text(); // Cambia a text() para ver el error
+            throw new Error(`Error ${response.status}: ${errorData}`);
         }
 
         const data = await response.json();
@@ -115,10 +117,7 @@ searchBtn.addEventListener("click", async () => {
 // Almacenar canciones seleccionadas
 function addToPlaylist(track) {
     // Verificar si la canción ya ha sido agregada
-    if (selectedTracks.find(t => t.id === track.id)) {
-        showNotification("Esta canción ya está en la lista.");
-        return;
-    }
+    
 
     selectedTracks.push(track); // Agregar la canción a la lista
     showNotification(`Canción agregada: ${track.name}`);
