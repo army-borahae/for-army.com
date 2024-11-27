@@ -1,0 +1,125 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #5b1b6b;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin: 50px auto;
+    max-width: 500px;
+    padding: 20px;
+    background: #121212;
+    border-radius: 10px;
+    position: relative;
+}
+
+input {
+    width: 80%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #5b1b6b;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #5b1b6b;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul li {
+    background: #333;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.track-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+ul li span {
+    flex-grow: 1;
+    text-align: left;
+    margin-left: 10px;
+}
+
+ul li button {
+    background: #ff5722;
+    padding: 5px 10px;
+}
+
+#playlist {
+    margin-top: 20px;
+    list-style-type: none;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#playlist li {
+    margin: 5px 0;
+    font-size: 16px;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.track-image {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+}
+
+/* Estilo del botón "Agregar Canciones Alternadas" */
+#addAlternatedBtn {
+    margin-top: 10px;
+}
+
+/* Estilo para el botón de "Guardar Playlist" */
+#savePlaylistBtn {
+    margin-top: 20px;
+}
+
+/* Estilos para el cuadro de notificación */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #5b1b6b; /* Verde */
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+}
+
+.notification.show {
+    opacity: 1;
+}
+
