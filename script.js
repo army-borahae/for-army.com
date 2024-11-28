@@ -8,12 +8,6 @@ let selectedTracks = []; // Variable para almacenar las canciones seleccionadas
 const scopes = 'user-read-private playlist-modify-public playlist-modify-private playlist-read-private user-library-read';
 const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
 
-
-// Botón para redirigir a Spotify
-document.getElementById("authorizeSpotifyBtn").addEventListener("click", () => {
-    authorizeSpotify(); // Llama a la función para autorizar en Spotify
-});
-
 // Función para redirigir al usuario a Spotify para que otorgue permisos
 function authorizeSpotify() {
     window.location.href = authUrl;
