@@ -8,6 +8,12 @@ let selectedTracks = []; // Variable para almacenar las canciones seleccionadas
 const scopes = 'user-read-private playlist-modify-public playlist-modify-private playlist-read-private user-library-read';
 const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
 
+
+// Botón para redirigir a Spotify
+document.getElementById("authorizeSpotifyBtn").addEventListener("click", () => {
+    authorizeSpotify(); // Llama a la función para autorizar en Spotify
+});
+
 // Función para redirigir al usuario a Spotify para que otorgue permisos
 function authorizeSpotify() {
     window.location.href = authUrl;
@@ -123,7 +129,11 @@ searchBtn.addEventListener("click", async () => {
 // Almacenar canciones seleccionadas
 function addToPlaylist(track) {
     // Verificar si la canción ya ha sido agregada
-    
+    const alreadyAdded = selectedTracks.some((t) => t.id === track.id);
+    if (alreadyAdded) {
+        showNotification(`La canción "${track.name}" ya fue agregada.`);
+        return; // Salir de la función si ya está agregada
+    }
 
     selectedTracks.push(track); // Agregar la canción a la lista
     showNotification(`Canción agregada: ${track.name}`);
@@ -181,7 +191,10 @@ function removeFromAlternatedPlaylist(track) {
 document.getElementById("addAlternatedBtn").addEventListener("click", addAlternatedToPlaylist);
 
 
-// Guardar playlist en Spotify
+
+// Guardar playlist en Spotify, incluyendo canciones repetidas
+let playlistUrl = ""; // Variable global para almacenar la URL de la playlist
+
 document.getElementById("savePlaylistBtn").addEventListener("click", async () => {
     if (isTokenExpired()) {
         await refreshToken();
@@ -189,11 +202,12 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
     }
 
     showLoading("Guardando playlist...");
-    
+
     const playlistName = prompt("¿Cómo quieres llamar a tu playlist?");
     if (!playlistName) return alert("Debes dar un nombre a la playlist.");
 
     try {
+        // Obtener el ID del usuario
         const response = await fetch("https://api.spotify.com/v1/me", {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -203,7 +217,7 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
         const userData = await response.json();
         const userId = userData.id;
 
-        // Crear la playlist en Spotify
+        // Crear una nueva playlist
         const createPlaylistResponse = await fetch(
             `https://api.spotify.com/v1/users/${userId}/playlists`,
             {
@@ -214,7 +228,7 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
                 },
                 body: JSON.stringify({
                     name: playlistName,
-                    description: "Playlist creada con la app de Spotify Creator",
+                    description: "Playlist creada exitosamente",
                     public: false,
                 }),
             }
@@ -223,33 +237,51 @@ document.getElementById("savePlaylistBtn").addEventListener("click", async () =>
         const createPlaylistData = await createPlaylistResponse.json();
         const playlistId = createPlaylistData.id;
 
-        // Agregar canciones a la playlist
-        const trackUris = selectedTracks.map((track) => track.uri);
-        await fetch(
-            `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    uris: trackUris,
-                }),
-            }
-        );
+        // Guardar la URL de la playlist creada
+        playlistUrl = createPlaylistData.external_urls.spotify; // Aquí se almacena el enlace
+
+        // Generar una lista alternada de canciones repetidas
+        const repeatedTracks = [];
+        for (let i = 0; i < 20; i++) { // Repetir 20 veces
+            selectedTracks.forEach((track) => repeatedTracks.push(track.uri));
+        }
+
+        // Dividir las canciones en lotes de 100 (Spotify tiene un límite por petición)
+        const chunkSize = 100;
+        for (let i = 0; i < repeatedTracks.length; i += chunkSize) {
+            const chunk = repeatedTracks.slice(i, i + chunkSize);
+            await fetch(
+                `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        uris: chunk,
+                    }),
+                }
+            );
+        }
 
         showNotification("Playlist guardada exitosamente.");
     } catch (error) {
         console.error("Error al guardar la playlist:", error);
         showNotification("Hubo un error al guardar la playlist.");
     } finally {
-        hideLoading();  // Ocultar indicador de carga después de guardar
+        hideLoading();
     }
 });
 
+
+
 document.getElementById("viewPlaylistsBtn").addEventListener("click", () => {
-    alert("Dirígete a tu Spotify para que puedas ver tu playlist y disfruta 💜💜.");
+    if (playlistUrl) {
+        window.open(playlistUrl, "_blank"); // Abrir la playlist en una nueva pestaña
+    } else {
+        alert("No se encontró la URL de la playlist. Guarda una playlist primero.");
+    }
 });
 // Mostrar indicador de carga
 function showLoading(message) {
