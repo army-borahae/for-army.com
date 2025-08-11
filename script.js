@@ -1,4 +1,4 @@
-const clientId = "2a1d7d4e43384a1f813a74df83845b5c"; // Reemplaza con tu Client ID
+const clientId = "c0c772b04904435c9b1105b071767d47"; // Reemplaza con tu Client ID
 const redirectUri = "https://army-borahae.github.io/for-army.com/"; // URI configurada en Spotify Dashboard
 
 let accessToken = null;
